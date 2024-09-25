@@ -8,15 +8,72 @@
   </head>
   <body>
     <div class="container">
-      <h2>Sign Up</h2>
+      <h1>Hall Reservation Form</h1>
       <form id="signup" method="post" action="model/addcuinfo.php">
         <div class="form-group">
-          <label for="username">Username:</label>
+          <label for="student_id">Student ID:</label>
+          <input type="text" id="student_id" name="student_id" required>
+        </div>
+        <div class="form-group">
+          <label for="username">First Name:</label>
           <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+          <label for="username">Last Name:</label>
+          <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+          <label for="birthdate">Birth Date:</label>
+          <input type="date" id="birthdate" name="birthdate">
+        </div>
+        <div class="form-group">
+          <label for="gender">Gender:</label>
+          <select id="gender" name="gender">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
         </div>
         <div class="form-group">
           <label for="email">Email:</label>
           <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+          <label for="phone_number">Phone:</label>
+          <input type="tel" id="phone" name="phone" required>
+        </div>
+        <div class="form-group">
+          <label for="hometown">Hometown:</label>
+          <select id="hometown" name="hometown">
+            <option value="Dhaka">Dhaka</option>
+            <option value="Tangail">Tangail</option>
+            <option value="Rajshahi">Rajshahi</option>
+            <option value="Chittagong">Chittagong</option>
+            <option value="Other">Other</option>
+            <!-- Add more countries as needed -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="preferred_hall">Preferred Hall:</label>
+          <select id="preferred_hall" name="preferred_hall">
+            <option value="hall_a">Mokbul Hossain Hall</option>
+            <option value="hall_a">Fazlur Rahman Hall</option>
+            <option value="hall_a">Fatema Hall</option>
+            <option value="hall_b">Mona Hall</option>
+            <!-- Add more halls -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="room_type">Room Type:</label>
+          <select id="room_type" name="room_type">
+            <option value="single">Single</option>
+            <option value="double">Double</option>
+            <option value="suite">Suite</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="move_in_date">Move-in Date (Optional):</label>
+          <input type="date" id="move_in_date" name="move_in_date">
         </div>
         <div class="form-group">
           <label for="password">Password:</label>
@@ -27,30 +84,13 @@
           <input type="password" id="confirm_password" name="confirm_password" required>
         </div>
         <div class="form-group">
-          <label for="birthdate">Birth Date:</label>
-          <input type="date" id="birthdate" name="birthdate">
-        </div>
-        <div class="form-group">
-          <label for="country">Country:</label>
-          <select id="country" name="country">
-            <option value="BD">Bangladesh</option>
-            <option value="USA">USA</option>
-            <option value="Canada">Canada</option>
-            <option value="UK">UK</option>
-            <option value="Australia">Australia</option>
-            <!-- Add more countries as needed -->
-          </select>
-        </div>
-        <div class="form-group">
           <input type="submit" value="Sign Up">
         </div>
       </form>
     </div>
     <footer>
       <div>
-        <a href="index.html" class="switch" target="blank">
-          <b>Home Page</b>
-        </a>
+        <a href="index.php" class="switch" target="blank">Home Page</a>
       </div>
     </footer>
   </body>
