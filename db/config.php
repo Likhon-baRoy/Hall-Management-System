@@ -4,12 +4,12 @@ $author="Copyright@Likhon";
 $host="localhost";
 $user="root";
 $password="";
-$dbname="final";
+$dbname="hall";
 $myconnect=mysqli_connect($host,$user,$password,$dbname);
 
 if(mysqli_connect_error()) {
     echo mysqli_connect_error();
-} else{
-    //echo "Database connection successful <br> happy coding :)";
+} else {
+    // echo "Database connection successful <br> happy coding :)";
 }
 ?>

@@ -6,7 +6,7 @@ $result=mysqli_query($myconnect,$sql);
 
 
 echo '<table border="2px" width="100%">
-<row> <th width="20%"> Customer Id </th><th width="20%">Name </th><th width="20%"> Email</th><th width="20%"> Password</th> <th width="20%" colspan="3"> Action</th></row>
+<row> <th width="20%"> ID </th><th width="20%"> Username </th><th width="20%"> Email </th><th width="20%"> Password </th> <th width="20%" colspan="3"> Action </th></row>
 ';
 
 while($row=mysqli_fetch_array($result)) {
