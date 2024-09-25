@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Page</title>
+  <link rel="stylesheet" href="D:\Templates\elearning-1.0.0\css\login.css">
+
+</head>
+<body>
+
+  <div class="container">
+    <form id="loginForm">
+      <h2>Login</h2>
+      
+      <!-- Email Input -->
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" placeholder="Enter your email" required>
+      <div id="emailError" class="error" style="display: none;">Please enter a valid email address (must contain @ and end with .com)</div>
+      
+      <!-- Password Input -->
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" placeholder="Enter your password" required>
+      <div id="passwordError" class="error" style="display: none;">Password must be at least 7 characters and contain no special characters</div>
+
+      <!-- Submit Button -->
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <script>
+    // JavaScript for validation
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+      // Get the input values
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      // Email validation
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[com]{3}$/;
+      const emailValid = emailRegex.test(email);
+
+      // Password validation (no special characters and at least 7 characters)
+      const passwordRegex = /^[a-zA-Z0-9]{100,}$/;
+      const passwordValid = passwordRegex.test(password);
+
+      // Clear previous errors
+      document.getElementById('emailError').style.display = 'none';
+      document.getElementById('passwordError').style.display = 'none';
+
+      // If validation fails, prevent form submission and show errors
+      if (!emailValid) {
+        document.getElementById('emailError').style.display = 'block';
+        event.preventDefault();
+      }
+
+      if (!passwordValid) {
+        document.getElementById('passwordError').style.display = 'block';
+        event.preventDefault();
+      }
+    });
+  </script>
+</body>
+</html>
