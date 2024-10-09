@@ -1,22 +1,49 @@
 <?php
 include("../db/config.php");
 
-$email=$_POST['email'];
-$pass=$_POST['password'];
-$encode=md5($pass);
+// Fetch the form data
+$username = strtolower(trim($_POST['username']));
+$password = $_POST['password'];
+$role = strtolower(trim($_POST['role']));  // Sanitize the role
 
-$sql= "SELECT * FROM c_info WHERE email='$email' and password='$encode'";
-$result=mysqli_query($myconnect,$sql);
+// Prepare the SQL query to check the username and role
+$sql = "SELECT * FROM c_info WHERE username = ? AND role = ?";
+if ($stmt = $myconnect->prepare($sql)) {
+    // Bind the parameters (username and role) and execute the query
+    $stmt->bind_param('ss', $username, $role);
+    $stmt->execute();
 
-$count=mysqli_num_rows($result);
+    // Get the result
+    $result = $stmt->get_result();
 
-if($count>=1) {
-    // Display JavaScript alert after redirection
-    echo '<script>alert("Successfully Logged In!");</script>';
-    // Redirect to index.php after showing the alert
-    echo '<script>window.location.href = "../index.php";</script>';
+    // Check if the user exists
+    if ($result->num_rows == 1) {
+        // Fetch the user's data
+        $user = $result->fetch_assoc();
+
+        // Verify the password using password_verify()
+        if (password_verify($password, $user['password'])) {
+            // Success: Redirect and show a success message
+            echo '<script>alert("Successfully Logged In!");</script>';
+            echo '<script>window.location.href = "../index.php";</script>';
+        } else {
+            // Incorrect password
+            echo '<script>alert("Incorrect password. Please try again.");</script>';
+            echo '<script>window.location.href = "../login.html";</script>';
+        }
+    } else {
+        // Username or role doesn't exist or mismatch
+        echo '<script>alert("Username or Role incorrect. Please try again.");</script>';
+        echo '<script>window.location.href = "../login.html";</script>';
+    }
+
+    // Close the statement
+    $stmt->close();
 } else {
-    echo '<script>alert("Username or Password incorrect! Please try again.");</script>';
-    echo '<script>window.location.href = "../view/login.php";</script>';
+    // Error with SQL statement
+    echo "Error: Could not prepare the SQL statement.";
 }
+
+// Close the database connection
+$myconnect->close();
 ?>
