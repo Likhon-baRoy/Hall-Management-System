@@ -1,93 +1,87 @@
 <?php
+session_start();
 include '../db/config.php';
 
-// Enable detailed error reporting (useful in development, disable in production)
+// Enable detailed error reporting
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Function to validate email using ZeroBounce API
-function validate_email($email) {
-    $apiKey = 'e68e4a05150845f49605a8dce4603599';  // Replace with your actual API key
-    $apiUrl = "https://api.zerobounce.net/v2/validate?api_key={$apiKey}&email={$email}";
-
-    // Initialize curl
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $apiUrl);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-
-    // Execute request
-    $response = curl_exec($ch);
-    curl_close($ch);
-
-    // Decode response
-    $data = json_decode($response, true);
-
-    // Return true if email is valid, false otherwise
-    return isset($data['status']) && $data['status'] === 'valid';
-}
-
 // Check if connected to the database
 if ($myconnect->connect_error) {
-    die("Connection failed: " . $myconnect->connect_error);
-} else {
-    echo "Connected to the database successfully.<br>";
+    // Log error to a file
+    error_log("Connection failed: " . $myconnect->connect_error, 3, 'error_log.txt');
+    die("Error: Unable to connect to the database.");
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Fetch and sanitize form data
-     $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+    $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
 
-    // Backend email validation using ZeroBounce
-    if (!validate_email($email)) {
-        die("Error: Invalid email address. Please enter a valid email.");
+    // Validate email format explicitly
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        die("Error: Invalid email format.");
     }
 
-    // Other form data processing...
+    $otp = $_POST['otp'];
+
+    // Verify OTP
+    if (!isset($_SESSION['otp']) || !isset($_SESSION['email']) || $_SESSION['otp'] != $otp || $_SESSION['email'] != $email) {
+        die("Error: Invalid OTP. Please check the OTP sent to your email.");
+    }
+
+    // Regenerate session ID after OTP verification
+    session_regenerate_id(true);
+
+    // OTP is valid; proceed with inserting user data
     $uid = intval($_POST['uid']);
-    $username = strtolower(trim($_POST['username']));  // Convert to lowercase, trim spaces
+    $username = strtolower(trim($_POST['username']));
 
     // Validate that username contains only lowercase letters and numbers
     if (!preg_match('/^[a-z0-9]+$/', $username)) {
         die("Error: Username can only contain lowercase letters and numbers.");
     }
 
-    // Use htmlspecialchars() or strip_tags() to sanitize user input instead of deprecated filters
+    // Sanitize other inputs
     $first_name = htmlspecialchars(trim($_POST['first_name']));
     $last_name = htmlspecialchars(trim($_POST['last_name']));
-    $birthdate = $_POST['birthdate'];  // Assumes valid format from HTML5 date input
-    $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+    $birthdate = $_POST['birthdate'];
     $phone = htmlspecialchars(trim($_POST['phone']));
     $hometown = htmlspecialchars(trim($_POST['hometown']));
-    $move_in_date = $_POST['move_in_date'];  // Assumes valid format from HTML5 date input
+    $move_in_date = strtotime($_POST['move_in_date']); // Convert to timestamp
+    if ($move_in_date === false || $move_in_date < time()) {
+        die("Error: Move-in date cannot be in the past.");
+    }
+
+    // Convert move-in date from Unix timestamp to MySQL date format (YYYY-MM-DD)
+    $move_in_date = strtotime($_POST['move_in_date']);
+    if ($move_in_date === false || $move_in_date < time()) {
+        die("Error: Move-in date cannot be in the past.");
+    }
+    $move_in_date = date('Y-m-d', $move_in_date);  // Convert to YYYY-MM-DD format
 
     // Fetch predefined values from form
-    $role = strtolower(trim($_POST['role']));  // Convert role to lowercase
+    $role = strtolower(trim($_POST['role']));
     $gender = strtolower(trim($_POST['gender']));
     $preferred_hall = strtolower(trim($_POST['preferred_hall']));
     $room_type = strtolower(trim($_POST['room_type']));
 
     // Validate predefined values
-
-    // Ensure valid role
     $valid_roles = ['student', 'administrator', 'staff'];
     if (!in_array($role, $valid_roles)) {
         die("Error: Invalid role selected.");
     }
 
-    // Ensure valid gender
     $valid_genders = ['male', 'female', 'other'];
     if (!in_array($gender, $valid_genders)) {
         die("Error: Invalid gender selected.");
     }
 
-    // Ensure valid room type
     $valid_room_types = ['single', 'double', 'suite'];
     if (!in_array($room_type, $valid_room_types)) {
         die("Error: Invalid room type selected.");
     }
 
-    // Ensure valid preferred hall
     $valid_halls = ['mokbul hossain hall', 'fazlur rahman hall', 'fatema hall', 'mona hall'];
     if (!in_array($preferred_hall, $valid_halls)) {
         die("Error: Invalid hall selected.");
@@ -100,9 +94,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         die("Error: Passwords do not match.");
     }
 
-    // Ensure password meets security requirements (e.g., length)
-    if (strlen($password) < 8) {
-        die("Error: Password must be at least 8 characters long.");
+    // Password strength validation
+    if (strlen($password) < 8 || !preg_match('/[A-Z]/', $password) || !preg_match('/\d/', $password) || !preg_match('/[^\w]/', $password)) {
+        die("Error: Password must be at least 8 characters long, with at least one uppercase letter, one number, and one special character.");
     }
 
     // Hash the password for security
@@ -111,7 +105,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Define the action variable (set to 1 by default)
     $action = 1;
 
-    // Step 1: Check if the UID or Username already exists
+    // Check if UID or Username already exists
     $check_sql = "SELECT uid, username FROM c_info WHERE uid = ? OR username = ?";
     if ($stmt = $myconnect->prepare($check_sql)) {
         $stmt->bind_param('is', $uid, $username);
@@ -124,21 +118,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->close();
     }
 
+    // Check if email already exists
+    $check_email_sql = "SELECT email FROM c_info WHERE email = ?";
+    if ($stmt = $myconnect->prepare($check_email_sql)) {
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows > 0) {
+            die("Error: Email is already in use. Please use another email.");
+        }
+        $stmt->close();
+    }
+
     // Prepare the SQL query to insert user data
     $sql = "INSERT INTO c_info (uid, username, first_name, last_name, birthdate, gender, email, phone, hometown, preferred_hall, room_type, move_in_date, password, action, role)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     if ($stmt = $myconnect->prepare($sql)) {
-        // Correctly bind all 15 parameters: 1 integer for uid, 1 integer for action, and 12 strings
+        // Correctly bind all 15 parameters
         if (!$stmt->bind_param('issssssssssssis', $uid, $username, $first_name, $last_name, $birthdate, $gender, $email, $phone, $hometown, $preferred_hall, $room_type, $move_in_date, $encoded_password, $action, $role)) {
-            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+            error_log("Binding failed: " . $stmt->error, 3, 'error_log.txt');
+            die("Error: Unable to process your request.");
         }
 
         // Execute the prepared statement
         if (!$stmt->execute()) {
-            echo "Execution failed: (" . $stmt->errno . ") " . $stmt->error;
+            error_log("Execution failed: (" . $stmt->errno . ") " . $stmt->error, 3, 'error_log.txt');
+            die("Error: Unable to complete registration. Please try again.");
         } else {
-            echo "Data inserted successfully!";
+            header("Location: ../login.html");
+            exit();
         }
 
         $stmt->close();

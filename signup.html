@@ -9,6 +9,8 @@
   </head>
 
   <body>
+    <!-- Form validation content here -->
+    <script src="js/form-validation.js"></script>
 
     <div class="container">
       <h1>Hall Reservation Form</h1>
@@ -17,23 +19,45 @@
 
         <div class="form-group">
           <label for="uid">User ID:</label>
-          <input type="text" id="uid" name="uid" pattern="[0-9]+" title="User ID can only contain numbers" required>
+          <input type="text" id="uid" name="uid" placeholder="must be unique and valid one (e.g. 181472543)" pattern="[0-9]+" title="User ID can only contain numbers" required>
         </div>
 
         <div class="form-group">
           <label for="first_name">First Name:</label>
-          <input type="text" id="first_name" name="first_name" pattern="[A-Za-z]+" title="First name can only contain letters" required>
+          <input type="text" id="first_name" name="first_name" placeholder="your firstname (e.g. Homo)" pattern="[A-Za-z]+" title="First name can only contain letters" required>
         </div>
 
         <div class="form-group">
           <label for="last_name">Last Name:</label>
-          <input type="text" id="last_name" name="last_name" pattern="[A-Za-z]+" title="Last name can only contain letters" required>
+          <input type="text" id="last_name" name="last_name" placeholder="your surname (e.g. Sapiens)" pattern="[A-Za-z]+" title="Last name can only contain letters" required>
         </div>
 
+        <!-- Username Field with Error and Success Messages -->
         <div class="form-group">
           <label for="username">Username:</label>
-          <input type="text" id="username" name="username" pattern="[a-z0-9]+" title="Username must be lowercase and can only contain letters and numbers" required onkeyup="checkUsernameAvailability()">
-          <small id="usernameError" style="color: red;"></small> <!-- For displaying username validation error -->
+          <input type="text" id="username" name="username" placeholder="e.g. likhon007" pattern="[a-z0-9]+"
+                 title="Username must be lowercase and can only contain letters and numbers"
+                 required onkeyup="checkUsernameAvailability()" oninput="validateUsernamePattern()">
+
+          <!-- Pattern Error Message -->
+          <small id="usernamePatternError" class="error-message" style="display: none; color: red;">
+            Username must be lowercase and can only contain letters and numbers.
+          </small>
+
+          <!-- Add Minimum Length Error Message -->
+          <small id="usernameMinLengthError" class="error-message" style="display: none; color: red;">
+            Username must be at least 4 characters long.
+          </small>
+
+          <!-- Availability Error Message -->
+          <small id="usernameAvailabilityError" class="error-message" style="display: none; color: red;">
+            Username is already taken.
+          </small>
+
+          <!-- Availability Success Message -->
+          <small id="usernameAvailabilitySuccess" class="success-message" style="display: none; color: green;">
+            Username is available.
+          </small>
         </div>
 
         <div class="form-group">
@@ -61,13 +85,22 @@
 
         <div class="form-group">
           <label for="email">Email:</label>
-          <input type="email" id="email" name="email" required>
-          <small id="emailError" style="color: red;"></small> <!-- For displaying email validation message -->
+          <input type="email" id="email" name="email" placeholder="example@mail.com" required onkeyup="checkEmailAvailability()">
+          <small id="emailError" class="error-message"></small> <!-- Display email validation message -->
+        </div>
+
+        <div class="form-group">
+          <label for="otp">Enter OTP:</label>
+          <input type="text" id="otp" name="otp" maxlength="6" required disabled>
+          <small id="otpTimerDisplay" style="color: blue;"></small> <!-- Timer display -->
+        </div>
+        <div class="form-group">
+          <button type="button" id="requestOtpButton" onclick="requestOTP()">Request OTP</button>
         </div>
 
         <div class="form-group">
           <label for="phone">Phone:</label>
-          <input type="tel" id="phone" name="phone" pattern="[0-9]{11}" title="Phone number must be 10 digits" required>
+          <input type="tel" id="phone" name="phone" placeholder="015XXXXXXXX" pattern="[0-9]{11}" title="Phone number must be 11 digits" required>
         </div>
 
         <div class="form-group">
@@ -102,7 +135,7 @@
 
         <div class="form-group">
           <label for="move_in_date">Move-in Date:</label>
-          <input type="date" id="move_in_date" name="move_in_date">
+          <input type="date" id="move_in_date" name="move_in_date" required min="" />
         </div>
 
         <div class="form-group">
@@ -126,90 +159,5 @@
         <a href="index.php" class="switch" target="blank">Home Page</a>
       </div>
     </footer>
-
-    <!-- Validation Script -->
-    <script>
-      let isUsernameAvailable = false; // Track username availability status
-
-      // Function to check username availability via AJAX
-      function checkUsernameAvailability() {
-          const usernameField = document.getElementById("username");
-          const usernameError = document.getElementById("usernameError");
-          const username = usernameField.value;
-
-          if (username.length < 1) {
-              usernameError.textContent = "";
-              return;
-          }
-
-          const xhr = new XMLHttpRequest();
-          xhr.open("POST", "model/check_username.php", true);
-          xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-          xhr.onreadystatechange = function () {
-              if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                  const response = xhr.responseText;
-                  if (response === "taken") {
-                      usernameError.textContent = "Username is already taken. Please choose another.";
-                      isUsernameAvailable = false;
-                  } else if (response === "available") {
-                      usernameError.textContent = "Username is available.";
-                      isUsernameAvailable = true;
-                  }
-              }
-          };
-          xhr.send("username=" + username);
-      }
-
-      // Function to validate the form
-      async function validateForm() {
-          // Validate username first
-          const usernameField = document.getElementById("username");
-          const usernameError = document.getElementById("usernameError");
-          const usernamePattern = /^[a-z0-9]+$/;
-          if (!usernamePattern.test(usernameField.value)) {
-              usernameError.textContent = "Username must be lowercase and can only contain letters and numbers.";
-              return false; // Prevent form submission
-          } else if (!isUsernameAvailable) {
-              usernameError.textContent = "Username is already taken. Please choose another.";
-              return false; // Prevent form submission if username is not available
-          }
-
-          // Validate email next
-          return await validateEmail(); // Continue to email validation
-      }
-
-      // Email validation using API
-      async function validateEmail() {
-          const emailField = document.getElementById("email");
-          const emailError = document.getElementById("emailError");
-          const email = emailField.value;
-
-          const apiKey = 'e68e4a05150845f49605a8dce4603599';
-          const apiUrl = `https://api.zerobounce.net/v2/validate?api_key=${apiKey}&email=${email}`;
-
-          try {
-              const response = await fetch(apiUrl);
-              const data = await response.json();
-
-              console.log("API Response:", data); // Log the API response for debugging
-
-              if (data.status !== "valid") {
-                  emailError.textContent = "Invalid email address. Please use a valid email.";
-                  return false; // Prevent form submission
-              }
-
-              emailError.textContent = ""; // Clear any previous errors
-              return true; // Allow form submission
-
-          } catch (error) {
-              console.error('Error validating email:', error);
-              emailError.textContent = "Error validating email. Please try again.";
-              return false; // Prevent form submission if there's an error
-          }
-      }
-
-    </script>
-
   </body>
 </html>
