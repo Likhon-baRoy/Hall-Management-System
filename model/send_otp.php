@@ -1,16 +1,18 @@
 <?php
 // Enable error reporting for debugging (disable in production)
-// ini_set('display_errors', 1);
-// ini_set('display_startup_errors', 1);
-// error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 session_start();
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-
-// Adjust the path as necessary based on your project structure
 require '/opt/lampp/htdocs/hall/vendor/autoload.php';
+
+// Load environment variables from the .env file in the project root. (__DIR__) will be the directory of `send_otp.php`
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../'); // (__DIR__ . '/../') moves up one directory
+$dotenv->load();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Retrieve email from POST data
@@ -32,19 +34,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Configure PHPMailer to use Gmail SMTP
     $mail = new PHPMailer(true);
     try {
-        // Server settings
+        // Configure PHPMailer using environment variables
         $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com';
+        $mail->Host       = $_ENV['SMTP_HOST'];
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'likhonhere007@gmail.com';  // Replace with your Gmail address
-        $mail->Password = 'fwpmuhqpukunfymd';           // App password generated from Google
-        $mail->SMTPSecure = 'tls';                      // 'tls' or 'ssl'
-        $mail->Port = 587;                              // 587 for TLS, 465 for SSL
+        $mail->Username   = $_ENV['SMTP_USERNAME'];
+        $mail->Password   = $_ENV['SMTP_PASSWORD'];
+        $mail->SMTPSecure = 'tls'; // You can also set to 'ssl' if required
+        $mail->Port       = $_ENV['SMTP_PORT'];
 
-        $mail->setFrom('likhonhere007@gmail.com', 'Likhon'); // Replace with your Gmail address and name
-        $mail->addAddress($email); // Add recipient
+        $mail->setFrom($_ENV['SMTP_FROM_EMAIL'], $_ENV['SMTP_FROM_NAME']);
+        $mail->addAddress($email);
 
-        // Content
+        // Email content
         $mail->isHTML(true);
         $mail->Subject = 'University Hall Ragistration OTP Code';
         $mail->Body    = "Your University Hall Ragistration OTP code is: <b>$otp</b>";
