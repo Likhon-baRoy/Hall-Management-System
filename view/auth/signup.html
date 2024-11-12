@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hall Reservation Application Form</title>
+    <link rel="stylesheet" href="../../assets/css/signup.css">
+  </head>
+
+  <body>
+    <!-- Form validation content here -->
+    <script src="../../assets/js/form-validation.js"></script>
+
+    <div class="container">
+      <h2>Hall Seat Reservation Form</h2>
+
+      <form id="signup" method="post" action="../../models/addcuinfo.php" onsubmit="return validateForm()">
+
+        <div class="form-group">
+          <label for="uid">User ID:</label>
+          <input type="text" id="uid" name="uid" placeholder="must be unique and valid one (e.g. 181472543)" pattern="[0-9]+" title="User ID can only contain numbers" required>
+        </div>
+
+        <div class="form-group">
+          <label for="first_name">First Name:</label>
+          <input type="text" id="first_name" name="first_name" placeholder="your firstname (e.g. Homo)" pattern="[A-Za-z]+" title="First name can only contain letters" required>
+        </div>
+
+        <div class="form-group">
+          <label for="last_name">Last Name:</label>
+          <input type="text" id="last_name" name="last_name" placeholder="your surname (e.g. Sapiens)" pattern="[A-Za-z]+" title="Last name can only contain letters" required>
+        </div>
+
+        <!-- Username Field with Error and Success Messages -->
+        <div class="form-group">
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username" placeholder="e.g. likhon007" pattern="[a-z0-9]+"
+                 title="Username must be lowercase and can only contain letters and numbers"
+                 required onkeyup="checkUsernameAvailability()" oninput="validateUsernamePattern()">
+
+          <!-- Pattern Error Message -->
+          <small id="usernamePatternError" class="error-message" style="display: none; color: red;">
+            Username must be lowercase and can only contain letters and numbers.
+          </small>
+
+          <!-- Add Minimum Length Error Message -->
+          <small id="usernameMinLengthError" class="error-message" style="display: none; color: red;">
+            Username must be at least 4 characters long.
+          </small>
+
+          <!-- Availability Error Message -->
+          <small id="usernameAvailabilityError" class="error-message" style="display: none; color: red;">
+            Username is already taken.
+          </small>
+
+          <!-- Availability Success Message -->
+          <small id="usernameAvailabilitySuccess" class="success-message" style="display: none; color: green;">
+            Username is available.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="role">Select Your Role:</label>
+          <select id="role" name="role" required>
+            <option value="student">Student</option>
+            <option value="administrator">Administrator</option>
+            <option value="staff">Staff</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="birthdate">Birth Date:</label>
+          <input type="date" id="birthdate" name="birthdate">
+        </div>
+
+        <div class="form-group">
+          <label for="gender">Gender:</label>
+          <select id="gender" name="gender">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" placeholder="example@xmail.com" required onkeyup="checkEmailAvailability()">
+          <small id="emailError" class="error-message"></small> <!-- Display email validation message -->
+        </div>
+
+        <div class="form-group">
+          <label for="otp">Enter OTP:</label>
+          <input type="text" id="otp" name="otp" maxlength="6" required disabled>
+          <small id="otpTimerDisplay" style="color: blue;"></small> <!-- Timer display -->
+        </div>
+        <div class="form-group">
+          <button type="button" id="requestOtpButton" onclick="requestOTP()">Request OTP</button>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone:</label>
+          <input type="tel" id="phone" name="phone" placeholder="015XXXXXXXX" pattern="[0-9]{11}" title="Phone number must be 11 digits" required>
+        </div>
+
+        <div class="form-group">
+          <label for="hometown">Hometown:</label>
+          <select id="hometown" name="hometown">
+            <option value="Dhaka">Dhaka</option>
+            <option value="Tangail">Tangail</option>
+            <option value="Rajshahi">Rajshahi</option>
+            <option value="Chittagong">Chittagong</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="preferred_hall">Preferred Hall:</label>
+          <select id="preferred_hall" name="preferred_hall">
+            <option value="Mokbul Hossain Hall">Mokbul Hossain Hall</option>
+            <option value="Fazlur Rahman Hall">Fazlur Rahman Hall</option>
+            <option value="Fatema Hall">Fatema Hall</option>
+            <option value="Mona Hall">Mona Hall</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="room_type">Room Type:</label>
+          <select id="room_type" name="room_type">
+            <option value="single">Single</option>
+            <option value="double">Double</option>
+            <option value="suite">Suite</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="move_in_date">Move-in Date:</label>
+          <input type="date" id="move_in_date" name="move_in_date" required min="" />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" minlength="8" title="Password must be at least 8 characters" required>
+        </div>
+
+        <div class="form-group">
+          <label for="confirm_password">Confirm Password:</label>
+          <input type="password" id="confirm_password" name="confirm_password" minlength="8" required>
+        </div></br>
+
+        <div class="form-group">
+          <input type="submit" value="Sign Up" style="font-weight: bold;">
+        </div>
+        <div style="text-align: center;">
+          <span style="font-size: 14px; font-weight: normal;">Already have an account?</span>
+          <a href="login.html" style="font-weight: bold; color: green; text-decoration: none;">Log in</a>
+        </div></br>
+      </form>
+    </div>
+
+    <footer>
+      <div>
+        <a href="../pages/index.html" class="switch" target="blank">Home Page</a>
+      </div>
+    </footer>
+  </body>
+</html>
