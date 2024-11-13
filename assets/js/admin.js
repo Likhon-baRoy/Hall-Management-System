@@ -1,28 +1,71 @@
-function loadUserTable() {
+// Load the user table with filter, search, and pagination data
+function loadTable(page = 1) {
     const filter = document.getElementById('filter').value;
     const search = document.querySelector('input[name="search"]').value;
 
     $.ajax({
         url: '../../controller/admin/fetch_user.php',
-        type: 'GET',
-        data: { filter: filter, search: search },
+        method: 'GET',
+        data: { filter: filter, search: search, page: page },
+        dataType: 'json', // Expect JSON data in response
         success: function(response) {
-            $('#user-table-body').html(response); // Populate the table body
+            // Check for any error in response
+            if (response.error) {
+                alert(response.error);
+                return;
+            }
+
+            // Populate the table body with user data
+            const userTableBody = $('#user-table-body');
+            userTableBody.empty(); // Clear existing rows
+            response.users.forEach(user => {
+                userTableBody.append(`
+                    <tr>
+                        <td>${user.uid}</td>
+                        <td>${user.username}</td>
+                        <td>${user.email}</td>
+                        <td>${user.phone}</td>
+                        <td>${user.role}</td>
+                        <td>
+                            <a href='edit.php?id=${user.uid}' class='btn btn-warning edit-btn'>Edit</a>
+                            <a href='delete.php?id=${user.uid}' class='btn btn-danger delete-btn' onclick="return confirmAction('delete')">Delete</a>
+                        </td>
+                    </tr>
+                `);
+            });
+
+            // Update pagination buttons
+            paginationInfo(response.pagination.currentPage, response.pagination.totalPages);
         },
-        error: function() {
-            alert("An error occurred while fetching data.");
+        error: function(xhr, status, error) {
+            console.error("AJAX Error:", status, error);
+            alert("An error occurred while loading data.");
         }
     });
 }
 
-// Trigger table load on filter or search change
-document.getElementById('filter').addEventListener('change', loadUserTable);
-        document.querySelector('input[name="search"]').addEventListener('keyup', loadUserTable);
+// Update pagination buttons
+function paginationInfo(currentPage, totalPages) {
+    const pagination = $('#pagination');
+    pagination.empty();
 
-// Load the table on page load
-window.onload = loadUserTable;
+    for (let i = 1; i <= totalPages; i++) {
+        pagination.append(`
+            <button class="btn ${i === currentPage ? 'btn-primary' : 'btn-outline-primary'}"
+                    onclick="loadTable(${i})">${i}</button>
+        `);
+    }
+}
 
-// Show a loading spinner or progress indicator when the AJAX request is in progress
+// Event listeners for filter and search input changes
+document.getElementById('filter').addEventListener('change', () => loadTable(1));
+document.querySelector('input[name="search"]').addEventListener('keyup', () => loadTable(1));
+
+// Initial load on page load
+$(document).ready(function() {
+    loadTable(1); // Load the first page of data initially
+});
+
 $(document).ready(function() {
     // Trigger AJAX on filter or search change
     $('#filter, #search').on('change input', function() {
@@ -30,7 +73,7 @@ $(document).ready(function() {
         var search = $('#search').val();  // Get search value
 
         // Show the loading spinner
-        $('#loading-spinner').show();
+        $('#loading-spinner').show();  // Ensure the spinner is shown
 
         // Send the request to fetch_user.php
         $.ajax({
@@ -57,22 +100,3 @@ $(document).ready(function() {
         });
     });
 });
-
-function deleteUser(uid) {
-    if (confirm('Are you sure you want to delete this user?')) {
-        $.ajax({
-            url: 'delete.php',
-            method: 'GET',
-            data: { uid: uid },
-            success: function(response) {
-                if (response.success) {
-                    alert('User deleted successfully!');
-                    // Reload the table data
-                    loadUserData();
-                } else {
-                    alert('An error occurred while deleting.');
-                }
-            }
-        });
-    }
-}

@@ -15,7 +15,6 @@
 </table>
 
 <!-- Pagination Controls -->
-<div id="pagination-controls" class="text-center mt-3">
-    <button id="prev-page" class="btn btn-secondary" disabled>Previous</button>
-    <button id="next-page" class="btn btn-secondary">Next</button>
+<div id="pagination">
+    <!-- Pagination buttons will be added here dynamically -->
 </div>
